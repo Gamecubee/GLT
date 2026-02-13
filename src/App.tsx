@@ -127,7 +127,7 @@ export default function App() {
               BUILD: LOCAL
             </div>
             <div className="text-[11px] tracking-[0.28em] text-neutral-500">
-              © {new Date().getFullYear()} GLT
+              © {new Date().getFullYear()} GLT by Gamecube
             </div>
           </div>
         </div>
