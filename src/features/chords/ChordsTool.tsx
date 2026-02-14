@@ -156,7 +156,7 @@ export function ChordsTool() {
   ]);
 
   return (
-    <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
+    <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
       <ChordsDisplay
         promptText={promptText}
         chordId={chordId}

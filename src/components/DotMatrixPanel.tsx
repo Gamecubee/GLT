@@ -21,17 +21,24 @@ export function DotMatrixPanel({
   return (
     <div
       className={[
-        "relative overflow-hidden rounded-xl border px-6 py-7",
+        "relative overflow-hidden rounded-xl border",
+        "px-4 py-4 sm:px-6 sm:py-6",
         accentClass,
         className ?? "",
       ].join(" ")}
     >
-      {/* Dot-matrix layer */}
+      {/* Dot-matrix layer - responsive density */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.14]">
-        <div className="h-full w-full bg-[radial-gradient(circle,rgba(255,255,255,0.22)_1px,transparent_1px)] bg-[size:12px_12px]" />
+        <div
+          className={[
+            "h-full w-full",
+            "bg-[radial-gradient(circle,rgba(255,255,255,0.22)_1px,transparent_1px)]",
+            "bg-[size:10px_10px] sm:bg-[size:12px_12px] lg:bg-[size:14px_14px]",
+          ].join(" ")}
+        />
       </div>
 
-      {/* Subtle top sheen */}
+      {/* Subtle sheen */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/5 to-transparent" />
 
       <div className="relative z-10">
@@ -40,7 +47,7 @@ export function DotMatrixPanel({
             {title}
           </div>
         ) : null}
-        <div className={title ? "mt-4" : ""}>{children}</div>
+        <div className={title ? "mt-3 sm:mt-4" : ""}>{children}</div>
       </div>
     </div>
   );

@@ -7,16 +7,17 @@ type Props = {
   phase: Phase;
   auto: boolean;
   paused: boolean;
-  intervalSeconds: number;
-  revealSeconds: number;
+
+  intervalSeconds: number; // prompt seconds
+  revealSeconds: number; // revealed seconds
 };
 
 export function ChordsDisplay(props: Props) {
   const isRevealed = props.phase === "revealed";
 
   return (
-    <DotMatrixPanel title="DISPLAY" accent="chords">
-      <div className="flex items-center justify-between">
+    <DotMatrixPanel title="DISPLAY" accent="chords" className="h-full">
+      <div className="flex items-center justify-between gap-3">
         <div className="text-[11px] tracking-[0.28em] text-neutral-500">
           PROMPT
         </div>
@@ -29,27 +30,30 @@ export function ChordsDisplay(props: Props) {
         </div>
       </div>
 
-      <div className="mt-5">
-        <div className="text-3xl font-semibold tracking-tight md:text-4xl">
+      <div className="mt-4 sm:mt-5">
+        <div className="font-semibold tracking-tight text-2xl sm:text-3xl lg:text-4xl xl:text-5xl">
           {props.promptText}
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-400">
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-neutral-400">
           <span>
             ID: <span className="text-neutral-200">{props.chordId}</span>
           </span>
+
           <span>
-            Interval:{" "}
+            Prompt:{" "}
             <span className="text-neutral-200">
               {props.intervalSeconds.toFixed(1)}s
             </span>
           </span>
+
           <span>
             Reveal:{" "}
             <span className="text-neutral-200">
               {props.revealSeconds.toFixed(1)}s
             </span>
           </span>
+
           <span>
             Phase:{" "}
             <span className="text-neutral-200">
@@ -59,7 +63,7 @@ export function ChordsDisplay(props: Props) {
         </div>
       </div>
 
-      <div className="mt-6 rounded-lg border border-neutral-800 bg-neutral-950/60 px-4 py-4">
+      <div className="mt-5 sm:mt-6 rounded-lg border border-neutral-800 bg-neutral-950/60 px-4 py-4">
         <div className="flex items-center justify-between text-[11px] tracking-[0.28em] text-neutral-500">
           <span>TAB / DIAGRAM</span>
           <span
@@ -69,9 +73,9 @@ export function ChordsDisplay(props: Props) {
           </span>
         </div>
 
-        <div className="mt-3 h-28 rounded-md border border-neutral-800 bg-neutral-950/60" />
+        <div className="mt-3 rounded-md border border-neutral-800 bg-neutral-950/60 h-24 sm:h-28 lg:h-36 xl:h-44" />
 
-        <div className="mt-2 text-sm text-neutral-400">
+        <div className="mt-2 text-xs sm:text-sm text-neutral-400">
           {isRevealed
             ? "Placeholder: here we will render the SVG chord diagram."
             : "Press Reveal (or wait in Auto mode) to show the diagram."}

@@ -19,4 +19,5 @@ export type ChordsState = {
   paused: boolean;
   intervalSeconds: number;
   // aggiungere secondo intervallo per reveal
+  revealSeconds: number;
 };
