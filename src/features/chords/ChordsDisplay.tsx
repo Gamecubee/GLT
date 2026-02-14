@@ -8,6 +8,7 @@ type Props = {
   auto: boolean;
   paused: boolean;
   intervalSeconds: number;
+  revealSeconds: number;
 };
 
 export function ChordsDisplay(props: Props) {
@@ -41,6 +42,12 @@ export function ChordsDisplay(props: Props) {
             Interval:{" "}
             <span className="text-neutral-200">
               {props.intervalSeconds.toFixed(1)}s
+            </span>
+          </span>
+          <span>
+            Reveal:{" "}
+            <span className="text-neutral-200">
+              {props.revealSeconds.toFixed(1)}s
             </span>
           </span>
           <span>

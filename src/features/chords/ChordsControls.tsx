@@ -4,12 +4,14 @@ type Props = {
   auto: boolean;
   paused: boolean;
   intervalSeconds: number;
+  revealSeconds: number;
   isRevealed: boolean;
   accidentalPreference: AccidentalPreference;
 
   onToggleAuto: () => void;
   onTogglePause: () => void;
   onIntervalChange: (value: string) => void;
+  onRevealSecondsChange: (value: string) => void;
   onAccidentalChange: (value: string) => void;
 
   onReveal: () => void;
@@ -78,7 +80,20 @@ export function ChordsControls(props: Props) {
             className="w-24 rounded-md border border-neutral-800 bg-neutral-950 px-2 py-1 text-sm text-neutral-200 outline-none focus:border-neutral-700"
           />
         </div>
-
+        {/* REVEAL */}
+        <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-3">
+          <div className="text-[11px] tracking-[0.28em] text-neutral-500">
+            REVEAL (s)
+          </div>
+          <input
+            type="number"
+            min={0.2}
+            step={0.1}
+            value={props.revealSeconds}
+            onChange={(e) => props.onRevealSecondsChange(e.target.value)}
+            className="w-24 rounded-md border border-neutral-800 bg-neutral-950 px-2 py-1 text-sm text-neutral-200 outline-none focus:border-neutral-700"
+          />
+        </div>
         {/* ACCIDENTALS */}
         <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-3">
           <div className="text-[11px] tracking-[0.28em] text-neutral-500">

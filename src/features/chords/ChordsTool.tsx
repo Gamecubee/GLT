@@ -19,6 +19,7 @@ type Action =
   | { type: "TOGGLE_AUTO" }
   | { type: "TOGGLE_PAUSE" }
   | { type: "SET_INTERVAL_SECONDS"; seconds: number }
+  | { type: "SET_REVEAL_SECONDS"; seconds: number }
   | {
       type: "UPDATE_RANDOMIZER_SETTINGS";
       patch: Partial<ChordRandomizerSettings>;
@@ -46,6 +47,7 @@ function makeInitialState(): ChordsState {
     auto: false,
     paused: false,
     intervalSeconds: 2,
+    revealSeconds: 1,
   };
 }
 
@@ -76,6 +78,13 @@ function reducer(state: ChordsState, action: Action): ChordsState {
         ? action.seconds
         : state.intervalSeconds;
       return { ...state, intervalSeconds: Math.max(0.2, seconds) };
+    }
+
+    case "SET_REVEAL_SECONDS": {
+      const seconds = Number.isFinite(action.seconds)
+        ? action.seconds
+        : state.revealSeconds;
+      return { ...state, revealSeconds: Math.max(0.2, seconds) };
     }
 
     case "UPDATE_RANDOMIZER_SETTINGS": {
@@ -123,17 +132,28 @@ export function ChordsTool() {
   const isRevealed = state.phase === "revealed";
 
   // auto: prompt -> reveal -> next (loop)
+  // auto: prompt -> reveal -> next (loop)
   useEffect(() => {
     if (!state.auto) return;
     if (state.paused) return;
 
-    const delayMs = Math.round(state.intervalSeconds * 1000);
+    const delaySeconds =
+      state.phase === "prompt" ? state.intervalSeconds : state.revealSeconds;
+
+    const delayMs = Math.round(delaySeconds * 1000);
+
     const t = window.setTimeout(() => {
       dispatch({ type: state.phase === "prompt" ? "REVEAL" : "NEXT" });
     }, delayMs);
 
     return () => window.clearTimeout(t);
-  }, [state.auto, state.paused, state.intervalSeconds, state.phase]);
+  }, [
+    state.auto,
+    state.paused,
+    state.intervalSeconds,
+    state.revealSeconds,
+    state.phase,
+  ]);
 
   return (
     <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
@@ -144,18 +164,23 @@ export function ChordsTool() {
         auto={state.auto}
         paused={state.paused}
         intervalSeconds={state.intervalSeconds}
+        revealSeconds={state.revealSeconds}
       />
 
       <ChordsControls
         auto={state.auto}
         paused={state.paused}
         intervalSeconds={state.intervalSeconds}
+        revealSeconds={state.revealSeconds}
         isRevealed={isRevealed}
         accidentalPreference={state.displaySettings.accidentalPreference}
         onToggleAuto={() => dispatch({ type: "TOGGLE_AUTO" })}
         onTogglePause={() => dispatch({ type: "TOGGLE_PAUSE" })}
         onIntervalChange={(v) =>
           dispatch({ type: "SET_INTERVAL_SECONDS", seconds: Number(v) })
+        }
+        onRevealSecondsChange={(v) =>
+          dispatch({ type: "SET_REVEAL_SECONDS", seconds: Number(v) })
         }
         onAccidentalChange={(v) => {
           if (!isAccidentalPreference(v)) return;
