@@ -1,6 +1,14 @@
 import { DotMatrixPanel } from "./components/DotMatrixPanel";
+import { formatChordPrompt, toChordId, type Chord } from "./domain/chords";
 
 export default function App() {
+  // test
+  const testChord: Chord = { root: "D#", type: "Min7", shape: "C" };
+  const promptSharp = formatChordPrompt(testChord, "sharp");
+  const promptFlat = formatChordPrompt(testChord, "flat");
+  const promptBoth = formatChordPrompt(testChord, "both");
+  const chordId = toChordId(testChord);
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 antialiased">
       <div className="relative mx-auto flex min-h-screen max-w-5xl items-center px-6 py-10">
@@ -66,6 +74,26 @@ export default function App() {
                 <div className="flex items-center justify-between text-[11px] tracking-[0.28em] text-neutral-500">
                   <span>TAB AREA</span>
                   <span className="text-emerald-200/90">READY</span>
+                  {/* TEST */}
+                  <div className="mt-3 grid gap-1 text-sm text-neutral-300">
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">PROMPT (♯)</span>
+                      <span className="font-medium">{promptSharp}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">PROMPT (♭)</span>
+                      <span className="font-medium">{promptFlat}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">PROMPT (both)</span>
+                      <span className="font-medium">{promptBoth}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">ID</span>
+                      <span className="font-medium">{chordId}</span>
+                    </div>
+                  </div>
+                  {/*END TEST*/}
                 </div>
                 <div className="mt-3 h-24 rounded-md border border-neutral-800 bg-neutral-950/60" />
                 <div className="mt-2 text-sm text-neutral-400">

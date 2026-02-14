@@ -20,7 +20,7 @@ export function formatChordPrompt(
 ): string {
   const formattedRoot = formatRoot(chord.root, preference);
   const typeLabel = CHORD_TYPE_UI_LABEL[chord.type];
-  return `${formattedRoot} ${typeLabel} — ${chord.shape} SHAPE`;
+  return `${chord.shape} SHAPE: ${formattedRoot} ${typeLabel}`;
 }
 
 // String id for history purposes
