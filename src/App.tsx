@@ -1,31 +1,6 @@
-import { DotMatrixPanel } from "./components/DotMatrixPanel";
-import { formatChordPrompt, toChordId, type Chord } from "./domain/chords";
-import type { ChordRandomizerSettings } from "./domain/rondomizer";
-import { pickRandomChord } from "./domain/rondomizer";
-import { ALL_CHORD_TYPES, SHAPE } from "./domain/music";
+import { ChordsTool } from "./features/chords/ChordsTool";
 
 export default function App() {
-  // test
-  const sampleChords = (
-    settings: ChordRandomizerSettings,
-    n: number,
-  ): Chord[] => {
-    const result: Chord[] = [];
-
-    for (let i = 0; i < n; i++) {
-      const chord = pickRandomChord(settings);
-      result.push(chord);
-    }
-
-    return result;
-  };
-  const chordRandFull: ChordRandomizerSettings = {
-    rootMode: "full",
-    allowedTypes: ALL_CHORD_TYPES,
-    allowedShapes: SHAPE,
-  };
-  const fullSamples = sampleChords(chordRandFull, 10);
-
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 antialiased">
       <div className="relative mx-auto flex min-h-screen max-w-5xl items-center px-6 py-10">
@@ -53,100 +28,8 @@ export default function App() {
           </div>
 
           {/* Body */}
-          <div className="grid gap-6 px-6 py-8 md:grid-cols-[1.2fr_0.8fr]">
-            {/* Left: dot-matrix display */}
-            <DotMatrixPanel title="DISPLAY" accent="chords">
-              <div className="flex items-center justify-between">
-                <div className="text-[11px] tracking-[0.28em] text-neutral-500">
-                  NOW
-                </div>
-                <div className="text-[11px] tracking-[0.28em] text-neutral-500">
-                  NEXT
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="text-[11px] tracking-[0.28em] text-neutral-500">
-                  PROMPT
-                </div>
-
-                {/* Placeholder: in futuro qui mettiamo il chord randomizzato */}
-                <div className="mt-2 text-4xl font-semibold tracking-tight">
-                  D#min7 <span className="text-neutral-400">— C FORM</span>
-                </div>
-
-                <div className="mt-2 text-sm text-neutral-400">
-                  Reveal after: <span className="text-neutral-200">2.0s</span>
-                </div>
-              </div>
-
-              <div className="mt-8 grid grid-cols-3 gap-3">
-                <Stat label="FORMS" value="E A D G C" />
-                <Stat label="TYPES" value="Maj Min 7" />
-                <Stat label="MODE" value="Manual" />
-              </div>
-
-              {/* Placeholder area for SVG tab/diagram */}
-              <div className="mt-6 rounded-lg border border-neutral-800 bg-neutral-950/70 px-4 py-4">
-                <div className="flex items-center justify-between text-[11px] tracking-[0.28em] text-neutral-500">
-                  <span>TAB AREA</span>
-                  <span className="text-emerald-200/90">READY</span>
-                  {/* TEST */}
-                  <div className="mt-4 grid gap-4">
-                    <SampleBlock title="FULL" chords={fullSamples} />
-                  </div>
-                  {/*END TEST*/}
-                </div>
-                <div className="mt-3 h-24 rounded-md border border-neutral-800 bg-neutral-950/60" />
-                <div className="mt-2 text-sm text-neutral-400">
-                  DVG diagrams here
-                </div>
-              </div>
-            </DotMatrixPanel>
-
-            {/* Right: controls (non-functional placeholders) */}
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-6 py-7">
-              <div className="text-[11px] tracking-[0.28em] text-neutral-500">
-                CONTROLS
-              </div>
-
-              <div className="mt-5 grid gap-3">
-                <ControlRow label="AUTO" value="OFF" />
-                <ControlRow label="INTERVAL" value="— s" />
-                <ControlRow label="REVEAL" value="Tap to show tab" />
-              </div>
-
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <button className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 text-sm font-medium text-neutral-100 transition hover:border-neutral-700">
-                  Prev
-                </button>
-                <button className="rounded-xl border border-neutral-800 bg-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-white">
-                  Next
-                </button>
-              </div>
-
-              <div className="mt-6 rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-3">
-                <div className="text-[11px] tracking-[0.28em] text-neutral-500">
-                  STATUS
-                </div>
-                <div className="mt-2 grid gap-1 text-sm text-neutral-300">
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">MODE</span>
-                    <span className="tracking-tight">CHORDS</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">AUTO</span>
-                    <span className="tracking-tight">OFF</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-500">INTERVAL</span>
-                    <span className="tracking-tight">—</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 text-[11px] tracking-[0.26em] text-neutral-600"></div>
-            </div>
+          <div className="px-6 py-8">
+            <ChordsTool />
           </div>
 
           {/* Footer bar */}
@@ -159,55 +42,6 @@ export default function App() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function Stat(props: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-950/70 px-4 py-3">
-      <div className="text-[11px] tracking-[0.28em] text-neutral-500">
-        {props.label}
-      </div>
-      <div className="mt-1 text-sm font-medium text-neutral-200">
-        {props.value}
-      </div>
-    </div>
-  );
-}
-
-function ControlRow(props: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-3">
-      <div className="text-[11px] tracking-[0.28em] text-neutral-500">
-        {props.label}
-      </div>
-      <div className="text-sm font-medium text-neutral-200">{props.value}</div>
-    </div>
-  );
-}
-
-//TEST
-function SampleBlock(props: { title: string; chords: Chord[] }) {
-  return (
-    <div className="rounded-lg border border-neutral-800 bg-neutral-950/60 px-4 py-3">
-      <div className="text-[11px] tracking-[0.28em] text-neutral-500">
-        {props.title}
-      </div>
-      <div className="mt-2 grid gap-1">
-        {props.chords.map((c) => {
-          const prompt = formatChordPrompt(c, "sharp");
-          const id = toChordId(c);
-          return (
-            <div key={id} className="flex items-baseline justify-between gap-4">
-              <div className="text-sm text-neutral-200">{prompt}</div>
-              <div className="text-[11px] tracking-[0.24em] text-neutral-600">
-                {id}
-              </div>
-            </div>
-          );
-        })}
       </div>
     </div>
   );

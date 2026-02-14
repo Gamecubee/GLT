@@ -56,7 +56,7 @@ export function formatRoot(
 // CAGED shapes
 export type CagedShape = "E" | "A" | "D" | "G" | "C";
 
-export const SHAPE: CagedShape[] = ["E", "A", "D", "G", "C"];
+export const ALL_CAGED_SHAPES: CagedShape[] = ["E", "A", "D", "G", "C"];
 
 // Chord types
 export type ChordType = "Major" | "Minor" | "7" | "Min7" | "Maj7" | "Power5";
