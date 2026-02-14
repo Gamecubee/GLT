@@ -1,13 +1,30 @@
 import { DotMatrixPanel } from "./components/DotMatrixPanel";
 import { formatChordPrompt, toChordId, type Chord } from "./domain/chords";
+import type { ChordRandomizerSettings } from "./domain/rondomizer";
+import { pickRandomChord } from "./domain/rondomizer";
+import { ALL_CHORD_TYPES, SHAPE } from "./domain/music";
 
 export default function App() {
   // test
-  const testChord: Chord = { root: "D#", type: "Min7", shape: "C" };
-  const promptSharp = formatChordPrompt(testChord, "sharp");
-  const promptFlat = formatChordPrompt(testChord, "flat");
-  const promptBoth = formatChordPrompt(testChord, "both");
-  const chordId = toChordId(testChord);
+  const sampleChords = (
+    settings: ChordRandomizerSettings,
+    n: number,
+  ): Chord[] => {
+    const result: Chord[] = [];
+
+    for (let i = 0; i < n; i++) {
+      const chord = pickRandomChord(settings);
+      result.push(chord);
+    }
+
+    return result;
+  };
+  const chordRandFull: ChordRandomizerSettings = {
+    rootMode: "full",
+    allowedTypes: ALL_CHORD_TYPES,
+    allowedShapes: SHAPE,
+  };
+  const fullSamples = sampleChords(chordRandFull, 10);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 antialiased">
@@ -75,29 +92,14 @@ export default function App() {
                   <span>TAB AREA</span>
                   <span className="text-emerald-200/90">READY</span>
                   {/* TEST */}
-                  <div className="mt-3 grid gap-1 text-sm text-neutral-300">
-                    <div className="flex justify-between">
-                      <span className="text-neutral-500">PROMPT (♯)</span>
-                      <span className="font-medium">{promptSharp}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-500">PROMPT (♭)</span>
-                      <span className="font-medium">{promptFlat}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-500">PROMPT (both)</span>
-                      <span className="font-medium">{promptBoth}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-500">ID</span>
-                      <span className="font-medium">{chordId}</span>
-                    </div>
+                  <div className="mt-4 grid gap-4">
+                    <SampleBlock title="FULL" chords={fullSamples} />
                   </div>
                   {/*END TEST*/}
                 </div>
                 <div className="mt-3 h-24 rounded-md border border-neutral-800 bg-neutral-950/60" />
                 <div className="mt-2 text-sm text-neutral-400">
-                  (Soon) SVG chord diagram will render here.
+                  DVG diagrams here
                 </div>
               </div>
             </DotMatrixPanel>
@@ -143,9 +145,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="mt-6 text-[11px] tracking-[0.26em] text-neutral-600">
-                TIP: keep commits small & frequent.
-              </div>
+              <div className="mt-6 text-[11px] tracking-[0.26em] text-neutral-600"></div>
             </div>
           </div>
 
@@ -184,6 +184,31 @@ function ControlRow(props: { label: string; value: string }) {
         {props.label}
       </div>
       <div className="text-sm font-medium text-neutral-200">{props.value}</div>
+    </div>
+  );
+}
+
+//TEST
+function SampleBlock(props: { title: string; chords: Chord[] }) {
+  return (
+    <div className="rounded-lg border border-neutral-800 bg-neutral-950/60 px-4 py-3">
+      <div className="text-[11px] tracking-[0.28em] text-neutral-500">
+        {props.title}
+      </div>
+      <div className="mt-2 grid gap-1">
+        {props.chords.map((c) => {
+          const prompt = formatChordPrompt(c, "sharp");
+          const id = toChordId(c);
+          return (
+            <div key={id} className="flex items-baseline justify-between gap-4">
+              <div className="text-sm text-neutral-200">{prompt}</div>
+              <div className="text-[11px] tracking-[0.24em] text-neutral-600">
+                {id}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
