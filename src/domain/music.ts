@@ -49,14 +49,14 @@ export function formatRoot(
   if (!flat) return root;
 
   if (preference === "sharp") return root;
-  if (preference === "flat") return flat;
+  else if (preference === "flat") return flat;
   else return root + "/" + flat;
 }
 
-// CAGED forms
-export type CagedForm = "E" | "A" | "D" | "G" | "C";
+// CAGED shapes
+export type CagedShape = "E" | "A" | "D" | "G" | "C";
 
-export const ALL_FORMS: CagedForm[] = ["E", "A", "D", "G", "C"];
+export const SHAPE: CagedShape[] = ["E", "A", "D", "G", "C"];
 
 // Chord types
 export type ChordType = "Major" | "Minor" | "7" | "Min7" | "Maj7" | "Power5";
@@ -70,7 +70,7 @@ export const ALL_CHORD_TYPES: ChordType[] = [
   "Power5",
 ];
 
-// short lable
+// short label
 export const CHORD_TYPE_UI_LABEL: { [key: string]: string } = {
   Major: "Maj",
   Minor: "Min",
