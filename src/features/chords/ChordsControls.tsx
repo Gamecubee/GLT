@@ -29,8 +29,6 @@ type Props = {
   selectedCagedShapes: readonly CagedShape[];
   allCagedShapes: readonly CagedShape[];
 
-  // kept for compatibility with your current ChordsTool
-  // (we'll write into it as "C#, D#, F#")
   extraRootsText: string;
 
   // handlers
@@ -46,7 +44,7 @@ type Props = {
   onToggleChordType: (type: ChordType) => void;
   onToggleCagedShape: (shape: CagedShape) => void;
 
-  // still used, but now driven by the pool UI
+  // driven by the pool UI
   onExtraRootsTextChange: (value: string) => void;
 
   onReveal: () => void;

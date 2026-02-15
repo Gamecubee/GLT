@@ -206,7 +206,6 @@ export function ChordsTool() {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.code !== "Space") return;
 
-      // Non rubare lo space quando l’utente sta scrivendo in input/select/textarea
       const el = document.activeElement;
       const isTypingTarget =
         el instanceof HTMLInputElement ||
@@ -232,7 +231,7 @@ export function ChordsTool() {
   // --- Settings handlers ---
 
   const setRootMode = (mode: RootMode) => {
-    // UX: when switching into CAGED, default to randomShape so shapes immediately "work".
+    // UX: when switching into CAGED, default to randomShape
     const patch: Partial<ChordRandomizerSettings> =
       mode === "cagedOnly"
         ? { rootMode: "cagedOnly", cagedMode: "randomShape" }
