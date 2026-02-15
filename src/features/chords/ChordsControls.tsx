@@ -76,6 +76,7 @@ function parseExtraRootsText(text: string): Root[] {
 function serializeExtraRoots(roots: readonly Root[]): string {
   return roots.join(", ");
 }
+
 export function ChordsControls(props: Props) {
   // Accordion open state
   const [open, setOpen] = useState<"session" | "randomizer" | "display">(
@@ -207,71 +208,126 @@ export function ChordsControls(props: Props) {
           }
         >
           <div className="grid gap-3">
-            <Row label="ROOT POOL">
-              <Segmented
-                value={props.rootMode}
-                options={[
-                  { value: "cagedOnly", label: "CAGED" },
-                  { value: "full", label: "FULL" },
-                ]}
-                onChange={(v) => props.onSetRootMode(v)}
-              />
-            </Row>
+            {/* Root Pool as chips (uniform style) */}
+            <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
+              <div className="text-[11px] tracking-[0.28em] text-neutral-500">
+                ROOT POOL
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(
+                  [
+                    { value: "cagedOnly", label: "CAGED" },
+                    { value: "full", label: "FULL" },
+                  ] as const
+                ).map((opt) => {
+                  const selected = props.rootMode === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => props.onSetRootMode(opt.value)}
+                      className={[
+                        "rounded-full border px-3 py-1 text-[11px] tracking-[0.26em] transition",
+                        selected
+                          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/15"
+                          : "border-neutral-800 text-neutral-300 hover:border-neutral-700 hover:bg-white/5",
+                      ].join(" ")}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-2 text-sm text-neutral-400">
+                {props.rootMode === "cagedOnly"
+                  ? "C A G E D (+ extras)."
+                  : "All 12 roots."}
+              </div>
+            </div>
 
+            {/* CAGED mode as chips (uniform style) */}
             {showCaged ? (
-              <>
-                <Row label="CAGED MODE">
-                  <Segmented
-                    value={props.cagedMode}
-                    options={[
+              <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
+                <div className="text-[11px] tracking-[0.28em] text-neutral-500">
+                  CAGED MODE
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(
+                    [
                       { value: "lock", label: "LOCK" },
                       { value: "randomShape", label: "RANDOM" },
-                    ]}
-                    onChange={(v) => props.onSetCagedMode(v)}
-                  />
-                </Row>
-
-                <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-[11px] tracking-[0.28em] text-neutral-500">
-                      EXTRA ROOTS
-                    </div>
-                    <div className="text-[11px] tracking-[0.22em] text-neutral-600">
-                      {selectedExtraRoots.length}
-                    </div>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {extraRootPool.map((r) => {
-                      const selected = selectedExtraSet.has(r);
-                      const label = formatRoot(r, props.accidentalPreference);
-                      return (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() => toggleExtraRoot(r)}
-                          className={[
-                            "rounded-full border px-3 py-1 text-[11px] tracking-[0.26em] transition",
-                            selected
-                              ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/15"
-                              : "border-neutral-800 text-neutral-300 hover:border-neutral-700 hover:bg-white/5",
-                          ].join(" ")}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-2 text-sm text-neutral-400">
-                    {props.cagedMode === "lock"
-                      ? "In LOCK: letter roots force matching shape (C→C...). Extra roots use selected shapes."
-                      : "Adds non-letter roots to the CAGED pool."}
-                  </div>
+                    ] as const
+                  ).map((opt) => {
+                    const selected = props.cagedMode === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => props.onSetCagedMode(opt.value)}
+                        className={[
+                          "rounded-full border px-3 py-1 text-[11px] tracking-[0.26em] transition",
+                          selected
+                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/15"
+                            : "border-neutral-800 text-neutral-300 hover:border-neutral-700 hover:bg-white/5",
+                        ].join(" ")}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
                 </div>
-              </>
+
+                <div className="mt-2 text-sm text-neutral-400">
+                  {props.cagedMode === "lock"
+                    ? "Letter roots force matching shape (C→C...)."
+                    : "Shapes are randomized from your selected set."}
+                </div>
+              </div>
             ) : null}
 
+            {/* Extra roots (only when cagedOnly) */}
+            {showCaged ? (
+              <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] tracking-[0.28em] text-neutral-500">
+                    EXTRA ROOTS
+                  </div>
+                  <div className="text-[11px] tracking-[0.22em] text-neutral-600">
+                    {selectedExtraRoots.length}
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {extraRootPool.map((r) => {
+                    const selected = selectedExtraSet.has(r);
+                    const label = formatRoot(r, props.accidentalPreference);
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => toggleExtraRoot(r)}
+                        className={[
+                          "rounded-full border px-3 py-1 text-[11px] tracking-[0.26em] transition",
+                          selected
+                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/15"
+                            : "border-neutral-800 text-neutral-300 hover:border-neutral-700 hover:bg-white/5",
+                        ].join(" ")}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-2 text-sm text-neutral-400">
+                  {props.cagedMode === "lock"
+                    ? "In LOCK: extras use selected shapes."
+                    : "Adds non-letter roots to the CAGED pool."}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Chord types */}
             <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
               <div className="flex items-center justify-between">
                 <div className="text-[11px] tracking-[0.28em] text-neutral-500">
@@ -308,6 +364,7 @@ export function ChordsControls(props: Props) {
               </div>
             </div>
 
+            {/* Shapes */}
             <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
               <div className="flex items-center justify-between">
                 <div className="text-[11px] tracking-[0.28em] text-neutral-500">
@@ -356,20 +413,55 @@ export function ChordsControls(props: Props) {
           onToggle={() => setOpen(open === "display" ? "session" : "display")}
         >
           <div className="grid gap-3">
-            <Row label="ACCIDENTALS">
-              <Segmented
-                value={props.accidentalPreference}
-                options={[
-                  { value: "sharp", label: "♯" },
-                  { value: "flat", label: "♭" },
-                  { value: "both", label: "♯/♭" },
-                ]}
-                onChange={(v) => props.onAccidentalChange(v)}
-              />
-            </Row>
+            <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3">
+              <div className="text-[11px] tracking-[0.28em] text-neutral-500">
+                ACCIDENTALS
+              </div>
 
-            {/* Optional: keep the select hidden for accessibility fallback if you want.
-                For now we keep it out since segmented handles it. */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(
+                  [
+                    {
+                      value: "sharp",
+                      label: <span className="text-[14px]">♯</span>,
+                    },
+                    {
+                      value: "flat",
+                      label: <span className="text-[14px]">♭</span>,
+                    },
+                    {
+                      value: "both",
+                      label: (
+                        <span className="inline-flex items-center gap-1 text-[14px] leading-none">
+                          <span>♯</span>
+                          <span className="text-[11px] text-neutral-600">
+                            +
+                          </span>
+                          <span>♭</span>
+                        </span>
+                      ),
+                    },
+                  ] as const
+                ).map((opt) => {
+                  const selected = props.accidentalPreference === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => props.onAccidentalChange(opt.value)}
+                      className={[
+                        "rounded-full border px-3 py-1 text-[11px] tracking-[0.26em] transition",
+                        selected
+                          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200 hover:bg-emerald-400/15"
+                          : "border-neutral-800 text-neutral-300 hover:border-neutral-700 hover:bg-white/5",
+                      ].join(" ")}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </AccordionSection>
       </div>
@@ -377,7 +469,7 @@ export function ChordsControls(props: Props) {
   );
 }
 
-/* UI primitives  */
+/* ---------------- UI primitives ---------------- */
 
 function AccordionSection(props: {
   title: string;
@@ -473,39 +565,6 @@ function ToggleSwitch(props: {
       />
       {label}
     </button>
-  );
-}
-
-function Segmented<T extends string>(props: {
-  value: T;
-  options: Array<{ value: T; label: string }>;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div className="flex overflow-hidden rounded-full border border-neutral-800">
-      {props.options.map((o, i) => {
-        const active = o.value === props.value;
-        return (
-          <div key={o.value} className="flex items-stretch">
-            <button
-              type="button"
-              onClick={() => props.onChange(o.value)}
-              className={[
-                "px-3 py-1 text-[11px] tracking-[0.26em] transition",
-                active
-                  ? "bg-emerald-400/12 text-emerald-200"
-                  : "text-neutral-300 hover:bg-white/5",
-              ].join(" ")}
-            >
-              {o.label}
-            </button>
-            {i < props.options.length - 1 ? (
-              <div className="w-px bg-neutral-800" />
-            ) : null}
-          </div>
-        );
-      })}
-    </div>
   );
 }
 
