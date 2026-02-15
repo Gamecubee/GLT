@@ -32,11 +32,11 @@ export type AccidentalPreference = "sharp" | "flat" | "both";
 
 // Only sharps that can also be flat
 const SHARP_TO_FLAT: { [key: string]: string } = {
-  "C#": "Db",
-  "D#": "Eb",
-  "F#": "Gb",
-  "G#": "Ab",
-  "A#": "Bb",
+  "C#": "D♭",
+  "D#": "E♭",
+  "F#": "G♭",
+  "G#": "A♭",
+  "A#": "B♭",
 };
 
 export function formatRoot(
@@ -55,7 +55,6 @@ export function formatRoot(
 
 // CAGED shapes
 export type CagedShape = "E" | "A" | "D" | "G" | "C";
-
 export const ALL_CAGED_SHAPES: CagedShape[] = ["E", "A", "D", "G", "C"];
 
 // Chord types

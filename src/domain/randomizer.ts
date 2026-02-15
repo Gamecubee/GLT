@@ -2,6 +2,7 @@ import { ALL_ROOTS, type Root, type CagedShape, type ChordType } from "./music";
 import type { Chord } from "./chords";
 
 export type RootMode = "cagedOnly" | "full";
+export type CagedMode = "lock" | "randomShape";
 
 export const CAGED_ROOTS: Root[] = ["C", "A", "G", "E", "D"];
 
@@ -10,6 +11,7 @@ export type ChordRandomizerSettings = {
   extraRoots?: Root[];
   allowedTypes: ChordType[];
   allowedShapes: CagedShape[];
+  cagedMode: CagedMode; // only relevant when rootMode === "cagedOnly"
 };
 
 export function getCandidateRoots(settings: ChordRandomizerSettings): Root[] {

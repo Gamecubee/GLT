@@ -2,16 +2,22 @@ import { useEffect, useMemo, useReducer } from "react";
 import {
   ALL_CHORD_TYPES,
   ALL_CAGED_SHAPES,
+  ALL_ROOTS,
   type AccidentalPreference,
+  type ChordType,
+  type CagedShape,
+  type Root,
 } from "../../domain/music";
 import {
   pickRandomChord,
   type ChordRandomizerSettings,
+  type RootMode,
+  type CagedMode,
 } from "../../domain/randomizer";
 import { formatChordPrompt, toChordId, type Chord } from "../../domain/chords";
 import { ChordsControls } from "./ChordsControls";
 import { ChordsDisplay } from "./ChordsDisplay";
-import type { ChordsState, DisplaySettings, Phase } from "./types";
+import type { ChordsState, DisplaySettings } from "./types";
 
 type Action =
   | { type: "NEXT" }
@@ -23,12 +29,15 @@ type Action =
   | {
       type: "UPDATE_RANDOMIZER_SETTINGS";
       patch: Partial<ChordRandomizerSettings>;
+      regenerate?: boolean;
     }
   | { type: "UPDATE_DISPLAY_SETTINGS"; patch: Partial<DisplaySettings> }
+  | { type: "SET_EXTRA_ROOTS_TEXT"; text: string }
   | { type: "RESET" };
 
 const DEFAULT_RANDOMIZER_SETTINGS: ChordRandomizerSettings = {
   rootMode: "full",
+  cagedMode: "randomShape",
   allowedTypes: ALL_CHORD_TYPES,
   allowedShapes: ALL_CAGED_SHAPES,
   extraRoots: [],
@@ -38,23 +47,69 @@ const DEFAULT_DISPLAY_SETTINGS: DisplaySettings = {
   accidentalPreference: "sharp",
 };
 
-function makeInitialState(): ChordsState {
+function parseExtraRootsText(text: string): Root[] {
+  const tokens = text
+    .split(/[,\s]+/g)
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const rootSet = new Set<Root>();
+  const allowed = new Set<string>(ALL_ROOTS as readonly string[]);
+  for (const t of tokens) {
+    if (allowed.has(t)) rootSet.add(t as Root);
+  }
+  return Array.from(rootSet);
+}
+
+function isCagedLetterRoot(r: Root): r is CagedShape {
+  return r === "C" || r === "A" || r === "G" || r === "E" || r === "D";
+}
+
+// Apply the "training rule" at feature layer:
+// - if not cagedOnly => no change
+// - if cagedOnly + lock => letter roots force matching shape, extras keep random shape
+// - if cagedOnly + randomShape => no change
+function applyCagedRule(
+  chord: Chord,
+  settings: ChordRandomizerSettings,
+): Chord {
+  if (settings.rootMode !== "cagedOnly") return chord;
+  if (settings.cagedMode !== "lock") return chord;
+
+  if (isCagedLetterRoot(chord.root)) {
+    const forced = chord.root;
+    if (chord.shape !== forced) return { ...chord, shape: forced };
+  }
+  return chord;
+}
+
+function makeInitialState(): ChordsState & { extraRootsText: string } {
+  const raw = pickRandomChord(DEFAULT_RANDOMIZER_SETTINGS);
+  const currentChord = applyCagedRule(raw, DEFAULT_RANDOMIZER_SETTINGS);
+
   return {
     randomizerSettings: DEFAULT_RANDOMIZER_SETTINGS,
     displaySettings: DEFAULT_DISPLAY_SETTINGS,
-    currentChord: pickRandomChord(DEFAULT_RANDOMIZER_SETTINGS),
+
+    currentChord,
     phase: "prompt",
+
     auto: false,
     paused: false,
     intervalSeconds: 2,
-    revealSeconds: 1,
+    revealSeconds: 2,
+
+    extraRootsText: "",
   };
 }
 
-function reducer(state: ChordsState, action: Action): ChordsState {
+type InternalState = ReturnType<typeof makeInitialState>;
+
+function reducer(state: InternalState, action: Action): InternalState {
   switch (action.type) {
     case "NEXT": {
-      const nextChord: Chord = pickRandomChord(state.randomizerSettings);
+      const raw = pickRandomChord(state.randomizerSettings);
+      const nextChord = applyCagedRule(raw, state.randomizerSettings);
       return { ...state, currentChord: nextChord, phase: "prompt" };
     }
 
@@ -89,7 +144,15 @@ function reducer(state: ChordsState, action: Action): ChordsState {
 
     case "UPDATE_RANDOMIZER_SETTINGS": {
       const nextSettings = { ...state.randomizerSettings, ...action.patch };
-      const nextChord = pickRandomChord(nextSettings);
+      const regenerate = action.regenerate ?? true;
+
+      if (!regenerate) {
+        return { ...state, randomizerSettings: nextSettings };
+      }
+
+      const raw = pickRandomChord(nextSettings);
+      const nextChord = applyCagedRule(raw, nextSettings);
+
       return {
         ...state,
         randomizerSettings: nextSettings,
@@ -103,6 +166,9 @@ function reducer(state: ChordsState, action: Action): ChordsState {
       return { ...state, displaySettings: nextDisplay };
     }
 
+    case "SET_EXTRA_ROOTS_TEXT":
+      return { ...state, extraRootsText: action.text };
+
     case "RESET":
       return makeInitialState();
 
@@ -110,12 +176,126 @@ function reducer(state: ChordsState, action: Action): ChordsState {
       return state;
   }
 }
-function isAccidentalPreference(v: string): v is AccidentalPreference {
-  return v === "sharp" || v === "flat" || v === "both";
-}
 
 export function ChordsTool() {
   const [state, dispatch] = useReducer(reducer, undefined, makeInitialState);
+
+  // Auto-advance: prompt duration vs reveal duration
+  useEffect(() => {
+    if (!state.auto) return;
+    if (state.paused) return;
+
+    const delaySeconds =
+      state.phase === "prompt" ? state.intervalSeconds : state.revealSeconds;
+    const delayMs = Math.round(delaySeconds * 1000);
+
+    const t = window.setTimeout(() => {
+      dispatch({ type: state.phase === "prompt" ? "REVEAL" : "NEXT" });
+    }, delayMs);
+
+    return () => window.clearTimeout(t);
+  }, [
+    state.auto,
+    state.paused,
+    state.phase,
+    state.intervalSeconds,
+    state.revealSeconds,
+  ]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code !== "Space") return;
+
+      // Non rubare lo space quando l’utente sta scrivendo in input/select/textarea
+      const el = document.activeElement;
+      const isTypingTarget =
+        el instanceof HTMLInputElement ||
+        el instanceof HTMLTextAreaElement ||
+        el instanceof HTMLSelectElement ||
+        (el instanceof HTMLElement && el.isContentEditable);
+
+      if (isTypingTarget) return;
+
+      e.preventDefault();
+
+      if (state.phase === "prompt") {
+        dispatch({ type: "REVEAL" });
+      } else {
+        dispatch({ type: "NEXT" });
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [state.phase]);
+
+  // --- Settings handlers ---
+
+  const setRootMode = (mode: RootMode) => {
+    // UX: when switching into CAGED, default to randomShape so shapes immediately "work".
+    const patch: Partial<ChordRandomizerSettings> =
+      mode === "cagedOnly"
+        ? { rootMode: "cagedOnly", cagedMode: "randomShape" }
+        : { rootMode: "full" };
+
+    dispatch({
+      type: "UPDATE_RANDOMIZER_SETTINGS",
+      patch,
+      regenerate: true,
+    });
+  };
+
+  const setCagedMode = (mode: CagedMode) => {
+    dispatch({
+      type: "UPDATE_RANDOMIZER_SETTINGS",
+      patch: { cagedMode: mode },
+      regenerate: true,
+    });
+  };
+
+  const toggleChordType = (t: ChordType) => {
+    const cur = state.randomizerSettings.allowedTypes;
+    const has = cur.includes(t);
+    if (has && cur.length === 1) return; // prevent empty
+    const next = has ? cur.filter((x) => x !== t) : [...cur, t];
+
+    dispatch({
+      type: "UPDATE_RANDOMIZER_SETTINGS",
+      patch: { allowedTypes: next },
+      regenerate: true,
+    });
+  };
+
+  const toggleCagedShape = (s: CagedShape) => {
+    const cur = state.randomizerSettings.allowedShapes;
+    const has = cur.includes(s);
+    if (has && cur.length === 1) return; // prevent empty
+    const next = has ? cur.filter((x) => x !== s) : [...cur, s];
+
+    dispatch({
+      type: "UPDATE_RANDOMIZER_SETTINGS",
+      patch: { allowedShapes: next },
+      regenerate: true,
+    });
+  };
+
+  const onExtraRootsTextChange = (text: string) => {
+    dispatch({ type: "SET_EXTRA_ROOTS_TEXT", text });
+
+    const parsed = parseExtraRootsText(text);
+    dispatch({
+      type: "UPDATE_RANDOMIZER_SETTINGS",
+      patch: { extraRoots: parsed },
+      regenerate: false, // don't reroll chord while typing
+    });
+  };
+
+  const onAccidentalChange = (v: AccidentalPreference) => {
+    dispatch({
+      type: "UPDATE_DISPLAY_SETTINGS",
+      patch: { accidentalPreference: v },
+    });
+  };
 
   const promptText = useMemo(() => {
     return formatChordPrompt(
@@ -131,36 +311,12 @@ export function ChordsTool() {
 
   const isRevealed = state.phase === "revealed";
 
-  // auto: prompt -> reveal -> next (loop)
-  // auto: prompt -> reveal -> next (loop)
-  useEffect(() => {
-    if (!state.auto) return;
-    if (state.paused) return;
-
-    const delaySeconds =
-      state.phase === "prompt" ? state.intervalSeconds : state.revealSeconds;
-
-    const delayMs = Math.round(delaySeconds * 1000);
-
-    const t = window.setTimeout(() => {
-      dispatch({ type: state.phase === "prompt" ? "REVEAL" : "NEXT" });
-    }, delayMs);
-
-    return () => window.clearTimeout(t);
-  }, [
-    state.auto,
-    state.paused,
-    state.intervalSeconds,
-    state.revealSeconds,
-    state.phase,
-  ]);
-
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
       <ChordsDisplay
         promptText={promptText}
         chordId={chordId}
-        phase={state.phase as Phase}
+        phase={state.phase}
         auto={state.auto}
         paused={state.paused}
         intervalSeconds={state.intervalSeconds}
@@ -174,6 +330,13 @@ export function ChordsTool() {
         revealSeconds={state.revealSeconds}
         isRevealed={isRevealed}
         accidentalPreference={state.displaySettings.accidentalPreference}
+        rootMode={state.randomizerSettings.rootMode}
+        cagedMode={state.randomizerSettings.cagedMode}
+        selectedChordTypes={state.randomizerSettings.allowedTypes}
+        allChordTypes={ALL_CHORD_TYPES}
+        selectedCagedShapes={state.randomizerSettings.allowedShapes}
+        allCagedShapes={ALL_CAGED_SHAPES}
+        extraRootsText={state.extraRootsText}
         onToggleAuto={() => dispatch({ type: "TOGGLE_AUTO" })}
         onTogglePause={() => dispatch({ type: "TOGGLE_PAUSE" })}
         onIntervalChange={(v) =>
@@ -182,13 +345,12 @@ export function ChordsTool() {
         onRevealSecondsChange={(v) =>
           dispatch({ type: "SET_REVEAL_SECONDS", seconds: Number(v) })
         }
-        onAccidentalChange={(v) => {
-          if (!isAccidentalPreference(v)) return;
-          dispatch({
-            type: "UPDATE_DISPLAY_SETTINGS",
-            patch: { accidentalPreference: v },
-          });
-        }}
+        onAccidentalChange={onAccidentalChange}
+        onSetRootMode={setRootMode}
+        onSetCagedMode={setCagedMode}
+        onToggleChordType={toggleChordType}
+        onToggleCagedShape={toggleCagedShape}
+        onExtraRootsTextChange={onExtraRootsTextChange}
         onReveal={() => dispatch({ type: "REVEAL" })}
         onNext={() => dispatch({ type: "NEXT" })}
         onReset={() => dispatch({ type: "RESET" })}
