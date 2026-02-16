@@ -313,6 +313,7 @@ export function ChordsTool() {
   return (
     <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
       <ChordsDisplay
+        chord={state.currentChord}
         promptText={promptText}
         chordId={chordId}
         phase={state.phase}
