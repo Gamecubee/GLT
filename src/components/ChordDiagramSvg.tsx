@@ -3,19 +3,15 @@ import type { Root } from "../domain/music";
 
 type Props = {
   voicing: ChordVoicing;
-
-  /** if false: render only the grid (no dots, no X/O, no barre) */
+  /** if false: render only the grid (no dots, no X/O, no barre, no markers) */
   revealed?: boolean;
-
   /** how many frets to show in the window */
   fretsVisible?: number;
-
   /**
    * String names low->high (index 0..5). Not hardcoded: pass in from settings later.
-   * Example standard tuning: ["E", "A", "D", "G", "B", "e"]
+   * Example standard tuning: ["E", "A", "D", "G", "B", "E"]
    */
   tuning?: readonly Root[];
-
   className?: string;
 };
 
@@ -35,17 +31,18 @@ export function ChordDiagramSvg({
 
   // Layout
   const W = 680;
-  const H = 190;
-
+  const H = 220; // ↑ was 190: extra room for bottom numbers
   const pad = 16;
-  const leftLabelW = 86; // space for string labels + base fret
+
+  const leftLabelW = 86; // string labels + base fret
   const gridX = leftLabelW;
   const gridY = 28;
+
+  const bottomLabelH = 28; // reserved space for fret marker numbers
   const gridW = W - gridX - pad;
-  const gridH = H - gridY - pad;
+  const gridH = H - gridY - pad - bottomLabelH;
 
   const strings = 6;
-
   const stringGap = gridH / (strings - 1);
   const fretGap = gridW / fretsVisible;
 
@@ -72,6 +69,7 @@ export function ChordDiagramSvg({
   const dots = revealed
     ? (voicing.frets as readonly StringFret[]).flatMap((f, i) => {
         const stringIndex = i as StringIndex;
+
         if (f === "x") return [];
         if (!isNumberFret(f)) return [];
         if (f === 0) return []; // open marker, not a dot
@@ -86,42 +84,43 @@ export function ChordDiagramSvg({
   const barres = revealed && voicing.barres ? voicing.barres : [];
 
   // Fret markers (5,7,9,12) if visible in the current window
-  const markerFretsInWindow = useMemoMarkers(voicing.baseFret, fretsVisible);
+  const markerFretsInWindow = markersInWindow(voicing.baseFret, fretsVisible);
+
+  const tuningToUse = tuning.length === 6 ? tuning : DEFAULT_TUNING;
 
   return (
     <svg
-      viewBox={`0 0 ${W} ${H}`}
       className={className}
-      role="img"
-      aria-label="Chord diagram"
+      viewBox={`0 0 ${W} ${H}`}
+      width="100%"
+      height="100%"
+      preserveAspectRatio="xMidYMid meet"
     >
       {/* Base fret label */}
       <text
         x={baseFretLabelX}
-        y={gridY + gridH * 0.55}
-        className="fill-neutral-500 text-[11px] tracking-[0.28em]"
+        y={gridY - 8}
+        fontSize="11"
+        letterSpacing="0.28em"
+        fill="rgba(255,255,255,0.38)"
       >
         {voicing.baseFret === 1 ? "OPEN" : `${voicing.baseFret}FR`}
       </text>
 
       {/* String labels (not hardcoded: from `tuning`) */}
-      {(tuning.length === 6 ? tuning : DEFAULT_TUNING).map((name, i) => {
+      {tuningToUse.map((name, i) => {
         const stringIndex = i as StringIndex;
         const y = yForString(stringIndex);
-
-        // display top->bottom as high->low, so flip label too
-        // (we render from i=0..5 but yForString flips positioning)
-        const label = name === "E" && stringIndex === 5 ? "e" : name;
-
         return (
           <text
-            key={`slabel-${i}`}
+            key={i}
             x={stringLabelX}
             y={y + 4}
-            className="fill-neutral-500 text-[12px]"
-            textAnchor="middle"
+            fontSize="12"
+            letterSpacing="0.22em"
+            fill="rgba(255,255,255,0.42)"
           >
-            {label}
+            {name}
           </text>
         );
       })}
@@ -131,18 +130,17 @@ export function ChordDiagramSvg({
         ? (voicing.frets as readonly StringFret[]).map((f, i) => {
             const stringIndex = i as StringIndex;
             const y = yForString(stringIndex);
-
             const label =
               f === "x" ? "×" : isNumberFret(f) && f === 0 ? "○" : "";
             if (!label) return null;
 
             return (
               <text
-                key={`marker-${i}`}
+                key={`xo-${i}`}
                 x={openMarkerX}
                 y={y + 4}
-                className="fill-neutral-500 text-[14px]"
-                textAnchor="middle"
+                fontSize="12"
+                fill="rgba(255,255,255,0.38)"
               >
                 {label}
               </text>
@@ -154,17 +152,15 @@ export function ChordDiagramSvg({
       {Array.from({ length: strings }).map((_, sTopToBottom) => {
         const stringIndexLowToHigh = (5 - sTopToBottom) as StringIndex;
         const y = yForString(stringIndexLowToHigh);
-
         return (
           <line
-            key={`string-${sTopToBottom}`}
+            key={`s-${sTopToBottom}`}
             x1={gridX}
             y1={y}
             x2={gridX + gridW}
             y2={y}
-            className="stroke-neutral-700"
+            stroke="rgba(255,255,255,0.18)"
             strokeWidth={1}
-            shapeRendering="crispEdges"
           />
         );
       })}
@@ -173,58 +169,64 @@ export function ChordDiagramSvg({
       {Array.from({ length: fretsVisible + 1 }).map((_, f) => {
         const x = gridX + f * fretGap;
         const isLeftEdge = f === 0;
-        const isRightEdge = f === fretsVisible;
 
         // Nut = thicker left edge only if baseFret==1
         const strokeWidth = isLeftEdge && showNut ? 5 : 1;
 
         return (
           <line
-            key={`fret-${f}`}
+            key={`f-${f}`}
             x1={x}
             y1={gridY}
             x2={x}
             y2={gridY + gridH}
-            className={
-              isLeftEdge || isRightEdge
-                ? "stroke-neutral-600"
-                : "stroke-neutral-800"
-            }
+            stroke="rgba(255,255,255,0.22)"
             strokeWidth={strokeWidth}
-            shapeRendering="crispEdges"
           />
         );
       })}
 
-      {/* Fret markers (5/7/9/12) – subtle, inside the grid */}
+      {/* Fret markers (5/7/9/12) – subtle dots inside the grid */}
+      {revealed
+        ? markerFretsInWindow.map((absFret) => {
+            const x = cellCenterXForFret(absFret);
+            const cy = gridY + gridH / 2;
+            const is12 = absFret % 12 === 0;
+
+            const r = 2.6;
+            const fill = "rgba(255,255,255,0.22)";
+
+            return (
+              <g key={`m-${absFret}`}>
+                {is12 ? (
+                  <>
+                    <circle cx={x} cy={cy - 9} r={r} fill={fill} />
+                    <circle cx={x} cy={cy + 9} r={r} fill={fill} />
+                  </>
+                ) : (
+                  <circle cx={x} cy={cy} r={r} fill={fill} />
+                )}
+              </g>
+            );
+          })
+        : null}
+
+      {/* Fret marker numbers (below the grid) */}
       {markerFretsInWindow.map((absFret) => {
         const x = cellCenterXForFret(absFret);
-        const cy = gridY + gridH / 2;
-
-        const is12 = absFret % 12 === 0; // includes 12, 24...
-        const r = 2.6;
-
+        const y = gridY + gridH + 20; // inside the SVG now (no clipping)
         return (
-          <g key={`mk-${absFret}`} opacity={0.7}>
-            {is12 ? (
-              <>
-                <circle
-                  cx={x}
-                  cy={cy - 10}
-                  r={r}
-                  className="fill-neutral-700"
-                />
-                <circle
-                  cx={x}
-                  cy={cy + 10}
-                  r={r}
-                  className="fill-neutral-700"
-                />
-              </>
-            ) : (
-              <circle cx={x} cy={cy} r={r} className="fill-neutral-700" />
-            )}
-          </g>
+          <text
+            key={`mn-${absFret}`}
+            x={x}
+            y={y}
+            textAnchor="middle"
+            fontSize="12"
+            letterSpacing="0.14em"
+            fill="rgba(255,255,255,0.26)"
+          >
+            {absFret}
+          </text>
         );
       })}
 
@@ -234,10 +236,8 @@ export function ChordDiagramSvg({
         if (rel < 0 || rel >= fretsVisible) return null;
 
         const x = gridX + rel * fretGap + fretGap * 0.5;
-
         const y1 = yForString(b.fromString);
         const y2 = yForString(b.toString);
-
         const top = Math.min(y1, y2);
         const bottom = Math.max(y1, y2);
 
@@ -248,8 +248,8 @@ export function ChordDiagramSvg({
             y1={top}
             x2={x}
             y2={bottom}
-            className="stroke-emerald-300/70"
-            strokeWidth={10}
+            stroke="rgba(16,185,129,0.35)" // emerald-ish
+            strokeWidth={6}
             strokeLinecap="round"
           />
         );
@@ -258,19 +258,20 @@ export function ChordDiagramSvg({
       {/* Dots */}
       {dots.map((d, i) => (
         <circle
-          key={`dot-${i}`}
+          key={`d-${i}`}
           cx={d.x}
           cy={d.y}
-          r={7.5}
-          className="fill-emerald-300 stroke-emerald-200"
-          strokeWidth={1.5}
+          r={6.2}
+          fill="rgba(16,185,129,0.70)"
+          stroke="rgba(16,185,129,0.15)"
+          strokeWidth={2}
         />
       ))}
     </svg>
   );
 }
 
-function useMemoMarkers(baseFret: number, fretsVisible: number): number[] {
+function markersInWindow(baseFret: number, fretsVisible: number): number[] {
   const start = baseFret;
   const end = baseFret + fretsVisible - 1;
 

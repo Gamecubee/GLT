@@ -91,8 +91,8 @@ export function ChordsDisplay(props: Props) {
           <div className="mt-3">
             <ChordDiagramSvg
               voicing={voicingToRender}
-              revealed={isRevealed && !!resolvedVoicing}
-              fretsVisible={14}
+              revealed={isRevealed}
+              fretsVisible={15}
               tuning={["E", "A", "D", "G", "B", "E"]}
               className="w-full"
             />
