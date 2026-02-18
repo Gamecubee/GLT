@@ -92,6 +92,26 @@ const TEMPLATES: Partial<Record<TemplateKey, VoicingTemplate>> = {
   },
   "E-Minor": {
     frets: [0, 2, 2, 0, 0, 0],
+    fingers: [null, 1, 2, null, null, null],
+    barres: [{ finger: 1, fret: 0, fromString: 0, toString: 5 }],
+  },
+  "E-7": {
+    frets: [0, 2, 0, 1, 0, 0],
+    fingers: [null, 2, null, 1, null, null],
+    barres: [{ finger: 1, fret: 0, fromString: 0, toString: 5 }],
+  },
+  "E-Min7": {
+    frets: [0, 2, 0, 0, 0, 0],
+    fingers: [null, 1, null, null, null, null],
+    barres: [{ finger: 1, fret: 0, fromString: 0, toString: 5 }],
+  },
+  "E-Maj7": {
+    frets: [1, "x", 2, 2, 1, 0],
+    fingers: [1, null, 3, 4, 2, null],
+    barres: [{ finger: 1, fret: 0, fromString: 0, toString: 5 }],
+  },
+  "E-Power5": {
+    frets: [0, 2, 2, "x", "x", "x"],
     fingers: [null, 2, 3, null, null, null],
     barres: [{ finger: 1, fret: 0, fromString: 0, toString: 5 }],
   },
@@ -103,6 +123,116 @@ const TEMPLATES: Partial<Record<TemplateKey, VoicingTemplate>> = {
   "A-Minor": {
     frets: ["x", 0, 2, 2, 1, 0],
     fingers: [null, null, 2, 3, 1, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "A-7": {
+    frets: ["x", 0, 2, 0, 2, 0],
+    fingers: [null, null, 1, null, 3, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "A-Min7": {
+    frets: ["x", 0, 2, 0, 1, 0],
+    fingers: [null, null, 2, null, 1, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "A-Maj7": {
+    frets: ["x", 0, 2, 1, 2, 0],
+    fingers: [null, null, 2, 1, 3, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "A-Power5": {
+    frets: ["x", 0, 2, 2, "x", "x"],
+    fingers: [null, null, 2, 3, null, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "D-Major": {
+    frets: ["x", "x", 0, 2, 3, 2],
+    fingers: [null, null, null, 1, 3, 2],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "D-Minor": {
+    frets: ["x", "x", 0, 2, 3, 1],
+    fingers: [null, null, null, 2, 3, 1],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "D-7": {
+    frets: ["x", "x", 0, 2, 1, 2],
+    fingers: [null, null, null, 2, 1, 3],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "D-Min7": {
+    frets: ["x", "x", 0, 2, 1, 1],
+    fingers: [null, null, null, 2, 1, 1],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "D-Maj7": {
+    frets: ["x", "x", 0, 2, 2, 2],
+    fingers: [null, null, null, 1, 1, 1],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "D-Power5": {
+    frets: ["x", "x", 0, 2, 3, "x"],
+    fingers: [null, null, null, 1, 2, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "G-Major": {
+    frets: [3, 2, 0, 0, 0, 3],
+    fingers: [2, 1, null, null, null, 3],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "G-Minor": {
+    frets: [3, 1, 0, 0, "x", "x"],
+    fingers: [3, 1, null, null, null, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "G-7": {
+    frets: [3, 2, 0, 0, 0, 1],
+    fingers: [3, 2, null, null, null, 1],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "G-Min7": {
+    frets: [3, 1, 3, 0, "x", "x"],
+    fingers: [3, 1, 4, null, null, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "G-Maj7": {
+    frets: [3, "x", 0, 0, 0, 2],
+    fingers: [3, null, null, null, null, 1],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "G-Power5": {
+    frets: ["x", "x", "x", 0, 3, 3],
+    fingers: [null, null, null, null, 2, 3],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "C-Major": {
+    frets: ["x", 3, 2, 0, 1, 0],
+    fingers: [null, 3, 2, null, 1, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "C-Minor": {
+    frets: ["x", 3, 1, 0, 1, "x"],
+    fingers: [null, 4, 1, null, 2, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "C-7": {
+    frets: ["x", 3, 2, 3, 1, 0],
+    fingers: [null, 3, 2, 4, 1, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "C-Min7": {
+    frets: ["x", 3, 1, 3, 1, "x"],
+    fingers: [null, 3, 1, 4, 1, null],
+    barres: [{ finger: 1, fret: 1, fromString: 3, toString: 5 }],
+  },
+  "C-Maj7": {
+    frets: ["x", 3, 2, 0, 0, 0],
+    fingers: [null, 3, 2, null, null, null],
+    barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
+  },
+  "C-Power5": {
+    frets: ["x", 3, "x", 0, 1, "x"],
+    fingers: [null, 3, null, null, 1, null],
     barres: [{ finger: 1, fret: 0, fromString: 1, toString: 5 }],
   },
 };
