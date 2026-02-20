@@ -40,9 +40,6 @@ The tool generates a chord prompt made of a root, a chord type and a shape, once
 - Min7
 - Maj7
 - Power5
-
-#### Currently supported shapes
-- E, A, D, G ,C
   
 ### Roadmap and future tools
 - History
